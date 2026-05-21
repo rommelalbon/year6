@@ -1,23 +1,943 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python Adventure</title>
-<link rel="stylesheet" href="style.css">
+<title>🐍 Python Adventure — Year 6</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1729; --card:#1a2340; --card2:#1e2a4a; --border:#2a3a5c;
+  --green:#34d399; --green2:#10b981; --blue:#60a5fa; --violet:#a78bfa;
+  --coral:#fb923c; --yellow:#fbbf24; --pink:#f472b6; --red:#f87171;
+  --teal:#2dd4bf; --lime:#a3e635;
+  --text:#f1f5f9; --dim:#94a3b8; --muted:#64748b;
+  --mono:'JetBrains Mono',monospace;
+  --body:'Nunito',sans-serif;
+  --display:'Fredoka',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--bg);color:var(--text);line-height:1.7;font-size:17px;overflow-x:hidden}
+
+/* PROGRESS */
+#progress-bar{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,var(--green),var(--blue),var(--violet),var(--pink));width:0%;z-index:1000;transition:width 0.5s}
+
+/* HEADER */
+#hdr{position:fixed;top:4px;left:0;right:0;background:rgba(15,23,41,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 1.4rem;height:58px;z-index:999;gap:10px}
+.hdr-logo{font-family:var(--display);font-size:1.2rem;color:var(--green);display:flex;align-items:center;gap:8px}
+.hdr-logo span{color:var(--text);font-weight:400}
+.hdr-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.nav-dots{display:flex;gap:5px}
+.nav-dot{width:11px;height:11px;border-radius:50%;background:var(--border);transition:all 0.3s;cursor:pointer}
+.nav-dot.current{background:var(--green);transform:scale(1.5);box-shadow:0 0 12px var(--green)}
+.nav-dot.done{background:var(--green2)}
+#level-badge{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:999px;padding:5px 14px;font-size:0.82rem}
+#level-icon{font-size:1.1rem}
+#level-text{font-family:var(--mono);font-weight:700;color:var(--yellow)}
+#score-box{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--border);border-radius:999px;padding:5px 14px;font-size:0.82rem}
+#score-num{font-family:var(--mono);font-size:1.05rem;color:var(--green);font-weight:700}
+.score-flash{position:fixed;top:76px;right:1.4rem;z-index:1001;pointer-events:none}
+.score-pill{background:var(--green);color:#000;font-weight:700;font-size:1rem;padding:10px 24px;border-radius:999px;animation:popFade 2s ease forwards;display:inline-block;box-shadow:0 8px 24px rgba(52,211,153,0.5)}
+@keyframes popFade{0%{opacity:0;transform:translateY(20px) scale(0.5)}15%{opacity:1;transform:translateY(0) scale(1.15)}35%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
+
+/* TEACHER MODE */
+.teacher-badge{display:none;position:fixed;bottom:16px;left:16px;background:var(--pink);color:#fff;padding:8px 16px;border-radius:8px;font-size:0.8rem;font-weight:700;z-index:998;box-shadow:0 6px 20px rgba(244,114,182,0.5)}
+body.teacher-mode .teacher-badge{display:block}
+.t-note{display:none;background:rgba(244,114,182,0.08);border-left:3px solid var(--pink);border-radius:0 10px 10px 0;padding:0.9rem 1.2rem;margin:0.8rem 0;font-size:0.92rem}
+body.teacher-mode .t-note{display:flex;gap:10px;align-items:flex-start}
+.t-note .t-icon{font-size:1.2rem;flex-shrink:0}
+
+/* SECTIONS */
+.sec{padding:4rem 1.6rem 2rem;max-width:900px;margin:0 auto;display:none}
+.sec.active{display:block;animation:fadeUp 0.5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.sec-tag{display:inline-flex;align-items:center;gap:6px;font-size:0.72rem;font-family:var(--mono);letter-spacing:0.14em;font-weight:700;padding:5px 14px;border-radius:6px;margin-bottom:1rem}
+.sec-title{font-family:var(--display);font-size:clamp(1.7rem,4vw,2.5rem);font-weight:700;margin-bottom:0.4rem;line-height:1.2}
+.sec-sub{color:var(--dim);font-size:1rem;margin-bottom:2rem;max-width:640px}
+
+/* NAV */
+.sec-nav{display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--border);flex-wrap:wrap}
+.nbtn{background:var(--card2);color:var(--text);border:1px solid var(--border);padding:12px 24px;border-radius:10px;font-weight:600;cursor:pointer;font-family:var(--body);transition:all 0.2s;font-size:0.95rem;display:inline-flex;align-items:center;gap:8px}
+.nbtn:hover:not(:disabled){border-color:var(--green);color:var(--green);transform:translateY(-2px)}
+.nbtn:disabled{opacity:0.35;cursor:not-allowed}
+.nbtn.primary{background:var(--green);color:#000;border-color:var(--green);font-weight:700}
+.nbtn.primary:hover{background:var(--green2);color:#000}
+.sec-status{font-size:0.85rem;color:var(--muted);font-family:var(--mono)}
+
+/* ANALOGY */
+.analogy{background:linear-gradient(135deg,rgba(52,211,153,0.1),rgba(96,165,250,0.06));border-left:4px solid var(--green);border-radius:0 14px 14px 0;padding:1.2rem 1.4rem;margin:1.2rem 0;display:flex;gap:14px;align-items:flex-start}
+.analogy-icon{font-size:2rem;flex-shrink:0}
+.analogy b{color:var(--green);display:block;margin-bottom:0.2rem;font-size:1rem}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:1rem;transition:border-color 0.2s}
+.card:hover{border-color:var(--green)}
+.card h3{font-family:var(--display);font-size:1.1rem;margin-bottom:0.4rem}
+.card p{color:var(--dim);font-size:0.95rem}
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:640px){.card-grid{grid-template-columns:1fr}}
+
+/* CODE */
+.cbox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:1rem 0;font-family:var(--mono);font-size:0.9rem}
+.cbox-label{padding:8px 14px;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;border-bottom:1px solid var(--border)}
+.cbox-body{padding:1rem 1.2rem;line-height:1.9;white-space:pre-wrap}
+.ck{color:#f472b6}.cs{color:#fbbf24}.cn{color:#60a5fa}.cc{color:#6b7280}.cf{color:var(--lime)}.cd{color:#a78bfa}
+
+/* CHALLENGES */
+.challenge{background:var(--card2);border:2px dashed var(--coral);border-radius:14px;padding:1.5rem;margin-top:1.5rem}
+.challenge h4{font-size:0.82rem;font-family:var(--mono);letter-spacing:0.1em;color:var(--coral);font-weight:700;margin-bottom:0.7rem}
+.challenge h4::before{content:"⚡ "}
+.ch-q{font-size:1rem;margin-bottom:1rem}
+.ch-code{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.2rem;font-family:var(--mono);font-size:0.9rem;color:var(--lime);line-height:1.9;margin-bottom:1rem;white-space:pre}
+.timer-bar{display:flex;align-items:center;gap:12px;background:rgba(251,191,36,0.08);border:1px solid var(--yellow);border-radius:10px;padding:0.9rem 1.2rem;margin-bottom:1rem}
+.timer-bar .t-text{flex:1;font-size:0.92rem;color:var(--yellow)}
+.timer-bar .t-num{font-family:var(--mono);font-size:1.5rem;font-weight:700;color:var(--yellow);min-width:36px;text-align:center}
+.timer-bar .t-skip{background:transparent;border:1px solid var(--yellow);color:var(--yellow);padding:5px 14px;border-radius:6px;cursor:pointer;font-size:0.8rem;font-family:var(--body)}
+.ans-zone{display:none}.ans-zone.show{display:block;animation:fadeUp 0.4s ease}
+.ans-row{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap}
+.ans-in{flex:1;min-width:200px;background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:var(--mono);font-size:0.95rem;resize:vertical;outline:none;min-height:46px;transition:border-color 0.2s}
+.ans-in:focus{border-color:var(--coral)}
+.ans-in.ok{border-color:var(--green);background:rgba(52,211,153,0.05)}
+.ans-in.bad{border-color:var(--red);background:rgba(248,113,113,0.05)}
+.chk-btn{background:var(--coral);color:#fff;font-weight:700;font-size:0.92rem;padding:10px 24px;border-radius:10px;border:none;cursor:pointer;font-family:var(--body);transition:all 0.2s;white-space:nowrap}
+.chk-btn:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-2px)}
+.chk-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.fb{margin-top:0.9rem;padding:1rem 1.2rem;border-radius:10px;font-size:0.92rem;display:none;border-left:4px solid}
+.fb.ok{background:rgba(52,211,153,0.08);border-color:var(--green);color:var(--green);display:block}
+.fb.bad{background:rgba(248,113,113,0.06);border-color:var(--red);color:#fca5a5;display:block}
+.fb.loading{background:rgba(96,165,250,0.06);border-color:var(--blue);color:var(--dim);display:block}
+.fb .explain{color:var(--dim);font-size:0.88rem;margin-top:0.5rem;line-height:1.7}
+
+/* DATA TYPE GAME */
+.type-values{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:1.5rem;min-height:60px;padding:1rem;background:var(--card);border-radius:12px;border:2px dashed var(--border)}
+.type-chip{background:var(--card2);border:2px solid var(--border);font-family:var(--mono);font-size:0.95rem;padding:9px 18px;border-radius:10px;cursor:pointer;user-select:none;transition:all 0.2s;color:var(--lime)}
+.type-chip:hover:not(.placed){border-color:var(--yellow);color:var(--yellow);transform:scale(1.06)}
+.type-chip.selected{border-color:var(--yellow);background:rgba(251,191,36,0.12);box-shadow:0 0 0 3px var(--yellow)}
+.type-chip.placed{opacity:0.25;cursor:default;pointer-events:none}
+.buckets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:640px){.buckets{grid-template-columns:1fr 1fr}}
+.bucket{background:var(--card);border:2px dashed var(--border);border-radius:14px;padding:0.8rem;min-height:130px;cursor:pointer;transition:all 0.2s}
+.bucket:hover{border-color:var(--violet);background:rgba(167,139,250,0.04)}
+.bucket-label{font-family:var(--mono);font-size:0.82rem;font-weight:700;text-align:center;padding:6px 0;border-radius:8px;margin-bottom:0.6rem;letter-spacing:0.06em}
+.placed-chip{font-family:var(--mono);font-size:0.8rem;padding:4px 10px;border-radius:6px;margin:3px;display:inline-block}
+.placed-chip.ok{background:rgba(52,211,153,0.2);color:var(--green)}
+.placed-chip.bad{background:rgba(248,113,113,0.2);color:var(--red)}
+.game-result{margin-top:1rem;font-size:1rem;font-weight:600}
+
+/* BROKEN CODE */
+.broken{background:var(--card2);border:2px solid var(--red);border-radius:14px;padding:1.4rem;margin:1.5rem 0}
+.broken h4{color:var(--red);font-size:0.88rem;font-family:var(--mono);letter-spacing:0.08em;margin-bottom:0.5rem}
+.broken h4::before{content:"🐛 "}
+.broken .hint{font-size:0.85rem;color:var(--yellow);font-style:italic;margin:0.5rem 0}
+
+/* VARIABLE NAME GAME */
+.name-game{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:1rem 0}
+@media(max-width:480px){.name-game{grid-template-columns:1fr}}
+.name-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:1rem;text-align:center;cursor:pointer;transition:all 0.2s;font-family:var(--mono);font-size:1rem}
+.name-card:hover{border-color:var(--yellow);transform:scale(1.03)}
+.name-card.picked-ok{border-color:var(--green);background:rgba(52,211,153,0.1)}
+.name-card.picked-bad{border-color:var(--red);background:rgba(248,113,113,0.08)}
+.name-card .verdict{font-size:0.78rem;font-family:var(--body);margin-top:6px;display:none}
+.name-card.picked-ok .verdict,.name-card.picked-bad .verdict{display:block}
+
+/* QUIZ */
+.quiz-q{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:12rem}
+.quiz-q .q-num{display:inline-block;background:var(--violet);color:#fff;font-family:var(--mono);font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:5px;margin-bottom:0.7rem}
+.mcq-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:0.8rem}
+@media(max-width:480px){.mcq-opts{grid-template-columns:1fr}}
+.mcq-opt{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;transition:all 0.15s;font-size:0.95rem;text-align:center}
+.mcq-opt:hover{border-color:var(--blue);color:var(--blue)}
+.mcq-opt.selected{border-color:var(--violet);background:rgba(167,139,250,0.1);color:var(--violet);font-weight:700}
+.mcq-opt.right{border-color:var(--green);background:rgba(52,211,153,0.1);color:var(--green)}
+.mcq-opt.wrong{border-color:var(--red);background:rgba(248,113,113,0.08);color:var(--red);opacity:0.6}
+
+/* LOOP VISUALISER (reused from Y7 but simpler) */
+.lv{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin:1.5rem 0}
+.lv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px}
+.lv-title{font-size:1rem;font-weight:700;color:var(--blue)}
+.lv-ctrls{display:flex;gap:6px}
+.lv-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-family:var(--body);transition:all 0.2s}
+.lv-btn:hover{border-color:var(--blue);color:var(--blue)}
+.lv-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* FUN FACTS */
+.fun-fact{background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(244,114,182,0.06));border:1px solid rgba(251,191,36,0.2);border-radius:14px;padding:1rem 1.3rem;margin:1rem 0;display:flex;gap:12px;align-items:flex-start}
+.fun-fact .ff-icon{font-size:1.6rem;flex-shrink:0}
+.fun-fact b{color:var(--yellow)}
+
+/* ANNOTATION */
+.note{display:flex;gap:10px;align-items:flex-start;background:rgba(52,211,153,0.07);border-left:3px solid var(--green);border-radius:0 10px 10px 0;padding:0.8rem 1rem;margin:0.8rem 0;font-size:0.92rem}
+.note.warn{background:rgba(251,191,36,0.07);border-color:var(--yellow)}
+.note.info{background:rgba(96,165,250,0.07);border-color:var(--blue)}
+.n-icon{font-size:1.1rem;flex-shrink:0}
+
+/* DAY DIVIDER */
+.day-divider{text-align:center;padding:3rem 1rem;margin:0 auto;max-width:500px}
+.day-divider .big-emoji{font-size:4rem;margin-bottom:1rem}
+.day-divider h2{font-family:var(--display);font-size:2rem;color:var(--yellow);margin-bottom:0.5rem}
+.day-divider p{color:var(--dim);margin-bottom:2rem}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;top:-10px;border-radius:3px;animation:confettiFall linear forwards;pointer-events:none;z-index:9999}
+@keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0}}
+
+/* LEVEL UP MODAL */
+.lvl-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.88);display:none;align-items:center;justify-content:center;z-index:10000}
+.lvl-modal.show{display:flex}
+.lvl-card{background:var(--card);border:2px solid var(--yellow);border-radius:22px;padding:2.5rem 2rem;text-align:center;max-width:380px;box-shadow:0 0 80px rgba(251,191,36,0.6);animation:popIn 0.5s ease}
+@keyframes popIn{0%{transform:scale(0.4);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+.lvl-card .big{font-size:4rem;margin-bottom:0.8rem}
+.lvl-card h3{font-family:var(--display);font-size:1.5rem;color:var(--yellow);margin-bottom:0.3rem}
+.lvl-card .lvl-name{font-family:var(--mono);font-size:1.3rem;color:var(--green);margin-bottom:0.8rem}
+.lvl-card p{color:var(--dim);margin-bottom:1.5rem;font-size:0.95rem}
+.lvl-card button{background:var(--yellow);color:#000;border:none;padding:12px 32px;border-radius:10px;font-weight:700;cursor:pointer;font-family:var(--body);font-size:1rem}
+
+/* FINAL RESULT */
+.final-result{background:var(--card);border:2px solid var(--yellow);border-radius:18px;padding:2.5rem;text-align:center;margin-top:2rem;box-shadow:0 0 60px rgba(251,191,36,0.15)}
+
+footer{text-align:center;padding:2.5rem 1.5rem;border-top:1px solid var(--border);color:var(--muted);font-size:0.85rem}
+</style>
 </head>
 <body>
-<h1>🐍 Python Adventure</h1>
-<div class="card">
-<h2>Variables</h2>
-<pre>score = 0
+
+<div id="progress-bar"></div>
+
+<header id="hdr">
+  <div class="hdr-logo">🐍 Python<span> Adventure</span></div>
+  <div class="hdr-right">
+    <div class="nav-dots" id="nav-dots"></div>
+    <div id="level-badge"><span id="level-icon">🌱</span><span id="level-text">Explorer</span></div>
+    <div id="score-box">🏆 <span id="score-num">0</span> pts</div>
+  </div>
+</header>
+<div class="score-flash" id="score-flash"></div>
+<div class="teacher-badge">👨‍🏫 Teacher Mode</div>
+
+<div class="lvl-modal" id="lvl-modal">
+  <div class="lvl-card">
+    <div class="big" id="lu-icon">⚡</div>
+    <h3>LEVEL UP!</h3>
+    <div class="lvl-name" id="lu-name">Coder</div>
+    <p id="lu-sub">You're getting good at this!</p>
+    <button onclick="closeLU()">Keep going →</button>
+  </div>
+</div>
+
+<section id="sec-0" class="sec active" data-s="0">
+  <div style="text-align:center;padding:3rem 0">
+    <div style="font-size:5rem;margin-bottom:1rem">🐍</div>
+    <div class="sec-tag" style="background:rgba(52,211,153,0.1);color:var(--green);border:1px solid var(--green)">YEAR 6 · MR ROMMEL</div>
+    <h1 class="sec-title" style="font-size:clamp(2rem,5vw,3.2rem);text-align:center">Python Adventure</h1>
+    <p style="color:var(--dim);max-width:540px;margin:0.5rem auto 2rem;font-size:1.05rem">Learn the building blocks of Python — variables, data types, print() and input(). Two lessons, lots of games, and you'll be writing real Python code by the end.</p>
+    <div style="background:var(--card);border:1px solid var(--border);border-left:4px solid var(--yellow);border-radius:10px;padding:1rem 1.2rem;max-width:500px;margin:0 auto 2rem;text-align:left;font-size:0.95rem;color:var(--dim)">
+      <strong style="color:var(--yellow)">👋 How this works:</strong><br>
+      Mr Rommel will guide you through each section together as a class.<br>
+      Each section has a simple explanation → then YOU try it.<br>
+      Score points by answering correctly. Level up as you go!
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:2rem">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1.2rem;font-size:0.88rem">
+        <strong style="color:var(--green)">Day 1</strong><br>
+        <span style="color:var(--dim)">Variables · Data Types · print()</span>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:0.8rem 1.2rem;font-size:0.88rem">
+        <strong style="color:var(--blue)">Day 2</strong><br>
+        <span style="color:var(--dim)">input() · Real Programs · Assessment</span>
+      </div>
+    </div>
+    <button class="nbtn primary" onclick="goTo(1)" style="font-size:1.1rem;padding:16px 40px">Start Day 1 → 🚀</button>
+  </div>
+</section>
+
+<section id="sec-1" class="sec" data-s="1">
+  <div class="sec-tag" style="background:rgba(52,211,153,0.1);color:var(--green);border:1px solid var(--green)">DAY 1 · SECTION 1</div>
+  <h2 class="sec-title">🏷️ Variables</h2>
+  <p class="sec-sub">A variable is a labelled box that holds a value. Every Python program uses them.</p>
+
+  <div class="analogy">
+    <span class="analogy-icon">📦</span>
+    <div>
+      <b>Think of it like a lunchbox</b>
+      Your lunchbox has a label on it (your name) and something inside (your sandwich). A variable is exactly the same — it has a <strong>name</strong> and holds a <strong>value</strong> inside.
+    </div>
+  </div>
+
+  <div class="cbox">
+    <div class="cbox-label" style="background:rgba(52,211,153,0.1);color:var(--green)">HOW TO CREATE A VARIABLE</div>
+    <div class="cbox-body"><span class="ck">name</span> = <span class="cs">"Jordan"</span>     <span class="cc"># the box is called "name" and holds "Jordan"</span>
+<span class="ck">age</span> = <span class="cn">12</span>              <span class="cc"># the box is called "age" and holds 12</span>
+<span class="ck">score</span> = <span class="cn">0</span>            <span class="cc"># the box is called "score" and holds 0</span>
+
+<span class="cc"># The = sign means STORE this value. It does NOT mean "equals" like in maths.</span></div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--coral)">
+    <h3 style="color:var(--coral)">⚠️ 3 naming rules — break ANY of them and Python crashes</h3>
+    <p><strong style="color:var(--text)">Rule 1:</strong> Only letters, numbers, and underscore <code style="color:var(--lime)">_</code><br>
+    <strong style="color:var(--text)">Rule 2:</strong> Cannot START with a number → <code style="color:var(--red)">3score</code> ✗ but <code style="color:var(--green)">score3</code> ✓<br>
+    <strong style="color:var(--text)">Rule 3:</strong> No spaces → <code style="color:var(--red)">my score</code> ✗ but <code style="color:var(--green)">my_score</code> ✓</p>
+  </div>
+
+  <div class="fun-fact">
+    <span class="ff-icon">💡</span>
+    <div><b>Bonus tip:</b> Use names that describe what's inside! <code style="color:var(--green)">player_name</code> is a good name. <code style="color:var(--red)">x</code> is bad — what does "x" mean?</div>
+  </div>
+
+  <div class="t-note"><span class="t-icon">👨‍🏫</span><div><strong>Discussion:</strong> Ask the class — "If I wrote <code>my-score</code> with a hyphen, would Python accept it?" (No — hyphens are not allowed, Python thinks it's subtraction!)</div></div>
+
+  <div class="card" style="border-color:var(--violet);margin-top:1.5rem">
+    <h3 style="color:var(--violet)">🔍 Variable Name Detective</h3>
+    <p style="margin-bottom:1rem">Tap each name — is it VALID or INVALID? Get all 6 right to earn 15 points.</p>
+    <div class="name-game" id="name-game">
+      <div class="name-card" data-valid="1" onclick="pickName(this)"><code>my_score</code><div class="verdict"></div></div>
+      <div class="name-card" data-valid="0" onclick="pickName(this)"><code>3score</code><div class="verdict"></div></div>
+      <div class="name-card" data-valid="0" onclick="pickName(this)"><code>my score</code><div class="verdict"></div></div>
+      <div class="name-card" data-valid="1" onclick="pickName(this)"><code>playerAge</code><div class="verdict"></div></div>
+      <div class="name-card" data-valid="0" onclick="pickName(this)"><code>My-Name</code><div class="verdict"></div></div>
+      <div class="name-card" data-valid="1" onclick="pickName(this)"><code>score_1</code><div class="verdict"></div></div>
+    </div>
+    <div class="game-result" id="name-game-result"></div>
+  </div>
+
+  <div class="challenge">
+    <h4>YOUR TURN — What does this code store?</h4>
+    <p class="ch-q">Read the code. What is stored in <code>score</code> when Python reaches the LAST line?</p>
+    <div class="ch-code">score = 0
 score = 10
 score = 5
-print(score)</pre>
-<textarea id="a1"></textarea>
-<button onclick="checkAnswer('a1','5','f1')">Check</button>
-<div id="f1"></div>
-</div>
-<script src="script.js"></script>
+print(score)</div>
+    <div class="timer-bar" id="tt-var1"><span style="font-size:1.4rem">⏱️</span><span class="t-text">Think first! Answer box in:</span><span class="t-num" id="tc-var1">10</span><button class="t-skip" onclick="skipTimer('var1')">Skip</button></div>
+    <div class="ans-zone" id="az-var1">
+      <div class="ans-row">
+        <input class="ans-in" id="ans-var1" placeholder="What does print(score) show?">
+        <button class="chk-btn" onclick="checkAnswerLocal('ans-var1','fb-var1','var1')">Check</button>
+      </div>
+      <div class="fb" id="fb-var1"></div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(0)">← Back</button>
+    <span class="sec-status">Section 1 of 8</span>
+    <button class="nbtn primary" onclick="goTo(2)">Next: Data Types →</button>
+  </div>
+</section>
+
+<section id="sec-2" class="sec" data-s="2">
+  <div class="sec-tag" style="background:rgba(96,165,250,0.1);color:var(--blue);border:1px solid var(--blue)">DAY 1 · SECTION 2</div>
+  <h2 class="sec-title">🎨 Data Types</h2>
+  <p class="sec-sub">Every value in Python has a type. The type tells Python what it's allowed to do with it.</p>
+
+  <div class="analogy">
+    <span class="analogy-icon">🧃</span>
+    <div>
+      <b>Think of it like different containers</b>
+      You wouldn't put soup in a paper bag or a letter in a bottle. Python is the same — different types of data need to be stored differently. Text goes in quotes. Numbers don't. True/False is for yes/no questions.
+    </div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card" style="border-left:4px solid var(--green)">
+      <h3 style="color:var(--green)">str — String (text)</h3>
+      <p>Always inside quotes: <code style="color:var(--lime)">"Hello"</code> or <code style="color:var(--lime)">'Hello'</code><br>Even <code style="color:var(--lime)">"7"</code> is a string — it's text, not a number!</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--blue)">
+      <h3 style="color:var(--blue)">int — Integer (whole number)</h3>
+      <p>Numbers WITHOUT a decimal point: <code style="color:var(--lime)">42</code>, <code style="color:var(--lime)">0</code>, <code style="color:var(--lime)">-5</code><br>NO quotes! You can do real maths with these.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--violet)">
+      <h3 style="color:var(--violet)">float — Decimal number</h3>
+      <p>Numbers WITH a decimal point: <code style="color:var(--lime)">3.14</code>, <code style="color:var(--lime)">1.5</code>, <code style="color:var(--lime)">9.99</code><br>Division <code style="color:var(--lime)">/</code> always gives a float.</p>
+    </div>
+    <div class="card" style="border-left:4px solid var(--yellow)">
+      <h3 style="color:var(--yellow)">bool — Boolean (yes/no)</h3>
+      <p>Only two values: <code style="color:var(--lime)">True</code> or <code style="color:var(--lime)">False</code><br>ALWAYS capital T and F. Used for decisions.</p>
+    </div>
+  </div>
+
+  <div class="note warn">
+    <span class="n-icon">🔑</span>
+    <div><strong>The #1 rule to remember:</strong> <code>"7"</code> in quotes = string (text). <code>7</code> without quotes = integer (number). Python treats them COMPLETELY differently. <code>"5" * 3</code> gives <code>"555"</code> but <code>5 * 3</code> gives <code>15</code>.</div>
+  </div>
+
+  <div class="t-note"><span class="t-icon">👨‍🏫</span><div><strong>Ask the class:</strong> "Why does Python need to know the type? What would happen if it didn't know?" (Answer: it wouldn't know if + means add numbers or join text together.)</div></div>
+
+  <div class="card" style="border-color:var(--violet);margin-top:1.5rem">
+    <h3 style="color:var(--violet)">🎮 Data Type Sorter</h3>
+    <p style="margin-bottom:1rem">Click a value → click the correct bucket. Sort all 12 to earn 20 bonus points!</p>
+    <div class="type-values" id="type-chips"></div>
+    <div class="buckets">
+      <div class="bucket" onclick="placeTo('str')"><div class="bucket-label" style="background:rgba(52,211,153,0.15);color:var(--green)">str</div><div id="b-str"></div></div>
+      <div class="bucket" onclick="placeTo('int')"><div class="bucket-label" style="background:rgba(96,165,250,0.15);color:var(--blue)">int</div><div id="b-int"></div></div>
+      <div class="bucket" onclick="placeTo('float')"><div class="bucket-label" style="background:rgba(167,139,250,0.15);color:var(--violet)">float</div><div id="b-float"></div></div>
+      <div class="bucket" onclick="placeTo('bool')"><div class="bucket-label" style="background:rgba(251,191,36,0.15);color:var(--yellow)">bool</div><div id="b-bool"></div></div>
+    </div>
+    <button class="chk-btn" onclick="checkTypeGame()" style="margin-top:1rem;background:var(--violet)">Check My Sorting</button>
+    <div class="game-result" id="tg-result"></div>
+  </div>
+
+  <div class="challenge" style="margin-top:1.5rem;border-color:var(--green)">
+    <h4 style="color:var(--green)">YOUR TURN — What does Python print?</h4>
+    <p class="ch-q">Read every line carefully. <strong>Predict FIRST on paper, then type.</strong></p>
+    <div class="ch-code">print("Ha" * 3)
+print("5" * 3)
+print("Hello" + " " + "World")</div>
+    <div class="timer-bar" id="tt-str1"><span style="font-size:1.4rem">⏱️</span><span class="t-text">Predict first! Answer box in:</span><span class="t-num" id="tc-str1">10</span><button class="t-skip" onclick="skipTimer('str1')">Skip</button></div>
+    <div class="ans-zone" id="az-str1">
+      <div class="ans-row">
+        <textarea class="ans-in" id="ans-str1" placeholder="3 outputs — one per line..." rows="3"></textarea>
+        <button class="chk-btn" onclick="checkAnswerLocal('ans-str1','fb-str1','str1')" style="background:var(--green)">Check</button>
+      </div>
+      <div class="fb" id="fb-str1"></div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(1)">← Back</button>
+    <span class="sec-status">Section 2 of 8</span>
+    <button class="nbtn primary" onclick="goTo(3)">Next: print() →</button>
+  </div>
+</section>
+
+<section id="sec-3" class="sec" data-s="3">
+  <div class="sec-tag" style="background:rgba(167,139,250,0.1);color:var(--violet);border:1px solid var(--violet)">DAY 1 · SECTION 3</div>
+  <h2 class="sec-title">📢 print()</h2>
+  <p class="sec-sub">print() shows something on the screen. It's how your program talks to the user.</p>
+
+  <div class="analogy">
+    <span class="analogy-icon">📣</span>
+    <div>
+      <b>Think of it like a loudspeaker</b>
+      print() is Python's loudspeaker. Whatever you put inside the brackets gets announced on screen. No print(), no output — your program stays silent.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>4 rules of print()</h3>
+    <div class="cbox" style="margin-top:0.8rem">
+      <div class="cbox-body"><span class="cc"># Rule 1: Strings go inside quotes</span>
+<span class="cf">print</span>(<span class="cs">"Hello!"</span>)       <span class="cc"># → Hello!</span>
+
+<span class="cc"># Rule 2: Variables go WITHOUT quotes</span>
+<span class="ck">name</span> = <span class="cs">"Jordan"</span>
+<span class="cf">print</span>(name)            <span class="cc"># → Jordan  (the VALUE inside the box)</span>
+<span class="cf">print</span>(<span class="cs">"name"</span>)          <span class="cc"># → name    (just the WORD "name")</span>
+
+<span class="cc"># Rule 3: Use comma to print multiple things</span>
+<span class="cf">print</span>(<span class="cs">"Name:"</span>, name, <span class="cs">"Age:"</span>, <span class="cn">12</span>)  <span class="cc"># → Name: Jordan Age: 12</span>
+
+<span class="cc"># Rule 4: Cannot join string + integer with +</span>
+<span class="ck">age</span> = <span class="cn">12</span>
+<span class="cf">print</span>(<span class="cs">"I am "</span> + age)     <span class="cc"># ✗ ERROR! Use str(age) or comma</span>
+<span class="cf">print</span>(<span class="cs">"I am"</span>, age)      <span class="cc"># ✓ Works! → I am 12</span></div>
+    </div>
+  </div>
+
+  <div class="note info">
+    <span class="n-icon">🔑</span>
+    <div><strong>Key difference:</strong> <code>print("name")</code> prints the WORD "name". <code>print(name)</code> prints whatever VALUE is stored in the variable called name.</div>
+  </div>
+
+  <div class="t-note"><span class="t-icon">👨‍🏫</span><div><strong>Live demo:</strong> Show both <code>print("name")</code> and <code>print(name)</code> side by side in Thonny. Ask: "Why are the outputs different?" This is the most common confusion.</div></div>
+
+  <div class="broken">
+    <h4>BROKEN CODE — Find the mistake</h4>
+    <p style="margin-bottom:0.5rem">This code will crash. Why?</p>
+    <div class="cbox" style="border-color:var(--red)">
+      <div class="cbox-body"><span class="ck">age</span> = <span class="cn">12</span>
+<span class="cf">print</span>(<span class="cs">"I am "</span> + age)</div>
+    </div>
+    <p class="hint">💡 Hint: What type is age? What type is "I am "? Can you join them with +?</p>
+    <div class="ans-row" style="margin-top:0.8rem">
+      <textarea class="ans-in" id="ans-brk1" placeholder="What's wrong and how do you fix it?" rows="2"></textarea>
+      <button class="chk-btn" onclick="checkAnswerLocal('ans-brk1','fb-brk1','brk1')">Check</button>
+    </div>
+    <div class="fb" id="fb-brk1"></div>
+  </div>
+
+  <div class="challenge" style="border-color:var(--violet)">
+    <h4 style="color:var(--violet)">YOUR TURN — Predict all 4 outputs</h4>
+    <div class="ch-code">name = "Jordan"
+age = 11
+print(name)
+print(type(age))
+print("Ha" * 3)
+print("I am", age)</div>
+    <div class="timer-bar" id="tt-pr1"><span style="font-size:1.4rem">⏱️</span><span class="t-text">Predict first! Answer box in:</span><span class="t-num" id="tc-pr1">10</span><button class="t-skip" onclick="skipTimer('pr1')">Skip</button></div>
+    <div class="ans-zone" id="az-pr1">
+      <div class="ans-row">
+        <textarea class="ans-in" id="ans-pr1" placeholder="4 outputs — one per line..." rows="4"></textarea>
+        <button class="chk-btn" onclick="checkAnswerLocal('ans-pr1','fb-pr1','pr1')" style="background:var(--violet)">Check</button>
+      </div>
+      <div class="fb" id="fb-pr1"></div>
+    </div>
+  </div>
+
+  <div class="day-divider" style="margin-top:3rem">
+    <div class="big-emoji">🎉</div>
+    <h2>Day 1 Complete!</h2>
+    <p>You've learned variables, data types, and print(). Tomorrow we'll learn input() and put everything together!</p>
+    <button class="nbtn primary" onclick="goTo(4);confetti()" style="font-size:1.05rem">Start Day 2 → 🚀</button>
+  </div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(2)">← Back</button>
+    <span class="sec-status">Section 3 of 8 · End of Day 1</span>
+    <button class="nbtn primary" onclick="goTo(4)">Day 2: input() →</button>
+  </div>
+</section>
+
+<section id="sec-4" class="sec" data-s="4">
+  <div class="sec-tag" style="background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid var(--teal)">DAY 2 · SECTION 4</div>
+  <h2 class="sec-title">🎤 input()</h2>
+  <p class="sec-sub">input() lets your program listen to the user. It pauses and waits for them to type something.</p>
+
+  <div class="analogy">
+    <span class="analogy-icon">🎙️</span>
+    <div>
+      <b>Think of it like a microphone</b>
+      print() is the loudspeaker (talking TO the user). input() is the microphone (listening FROM the user). Together they make a conversation.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>4 rules of input()</h3>
+    <div class="cbox" style="margin-top:0.8rem">
+      <div class="cbox-body"><span class="cc"># Rule 1: input() pauses and waits</span>
+<span class="ck">name</span> = <span class="cf">input</span>(<span class="cs">"What is your name? "</span>)
+<span class="cc"># Python shows the question, then WAITS for the user to type</span>
+
+<span class="cc"># Rule 2: Always store in a variable</span>
+<span class="ck">name</span> = <span class="cf">input</span>(<span class="cs">"Name? "</span>)  <span class="cc"># ✓ stored in name</span>
+<span class="cf">input</span>(<span class="cs">"Name? "</span>)          <span class="cc"># ✗ answer is LOST forever</span>
+
+<span class="cc"># Rule 3: input() ALWAYS gives you a STRING</span>
+<span class="ck">age</span> = <span class="cf">input</span>(<span class="cs">"Age? "</span>)    <span class="cc"># user types 12 → stored as "12" (text!)</span>
+
+<span class="cc"># Rule 4: Use int() to convert to a number</span>
+<span class="ck">age</span> = <span class="cn">int</span>(<span class="cf">input</span>(<span class="cs">"Age? "</span>))  <span class="cc"># now age is 12 (number!) ✓</span></div>
+    </div>
+  </div>
+
+  <div class="note warn">
+    <span class="n-icon">⚠️</span>
+    <div><strong>The big trap:</strong> input() ALWAYS gives you a string — even if the user types a number. If the user types <code>12</code>, Python stores <code>"12"</code> (text). Wrap with <code>int()</code> to get a real number.</div>
+  </div>
+
+  <div class="t-note"><span class="t-icon">👨‍🏫</span><div><strong>Live demo:</strong> In Thonny, type <code>age = input("Age? ")</code> then <code>print(type(age))</code>. Show them it says <code>&lt;class 'str'&gt;</code> even though they typed a number.</div></div>
+
+  <div class="challenge" style="border-color:var(--teal)">
+    <h4>YOUR TURN — Fill in the blank</h4>
+    <p class="ch-q">Complete this code so that <code>score</code> is stored as an integer (number), not a string:</p>
+    <div class="ch-code">score = ____(input("Your score? "))</div>
+    <div class="ans-row">
+      <input class="ans-in" id="ans-inp1" placeholder="What goes in the blank?">
+      <button class="chk-btn" onclick="checkAnswerLocal('ans-inp1','fb-inp1','inp1')" style="background:var(--teal)">Check</button>
+    </div>
+    <div class="fb" id="fb-inp1"></div>
+  </div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(3)">← Back</button>
+    <span class="sec-status">Section 4 of 8</span>
+    <button class="nbtn primary" onclick="goTo(5)">Next: Real Programs →</button>
+  </div>
+</section>
+
+<section id="sec-5" class="sec" data-s="5">
+  <div class="sec-tag" style="background:rgba(251,191,36,0.1);color:var(--yellow);border:1px solid var(--yellow)">DAY 2 · SECTION 5</div>
+  <h2 class="sec-title">🔧 Real Programs</h2>
+  <p class="sec-sub">Time to put everything together. Read real programs, find bugs, and predict outputs.</p>
+
+  <div class="broken">
+    <h4>BROKEN CODE A — What's wrong?</h4>
+    <div class="cbox" style="border-color:var(--red)">
+      <div class="cbox-body"><span class="ck">name</span> = Jordan
+<span class="cf">print</span>(<span class="cs">"Hello, "</span> + name)</div>
+    </div>
+    <p class="hint">💡 Hint: How should text be stored?</p>
+    <div class="ans-row" style="margin-top:0.8rem">
+      <input class="ans-in" id="ans-brkA" placeholder="What's wrong?">
+      <button class="chk-btn" onclick="checkAnswerLocal('ans-brkA','fb-brkA','brkA')">Check</button>
+    </div>
+    <div class="fb" id="fb-brkA"></div>
+  </div>
+
+  <div class="broken">
+    <h4>BROKEN CODE B — What's wrong?</h4>
+    <div class="cbox" style="border-color:var(--red)">
+      <div class="cbox-body"><span class="ck">is_raining</span> = true
+<span class="cf">print</span>(is_raining)</div>
+    </div>
+    <p class="hint">💡 Hint: Look at the boolean value very carefully...</p>
+    <div class="ans-row" style="margin-top:0.8rem">
+      <input class="ans-in" id="ans-brkB" placeholder="What's wrong?">
+      <button class="chk-btn" onclick="checkAnswerLocal('ans-brkB','fb-brkB','brkB')">Check</button>
+    </div>
+    <div class="fb" id="fb-brkB"></div>
+  </div>
+
+  <div class="broken">
+    <h4>BROKEN CODE C — Variable naming</h4>
+    <div class="cbox" style="border-color:var(--red)">
+      <div class="cbox-body"><span class="ck">my name</span> = <span class="cs">"Jordan"</span>
+<span class="cf">print</span>(my name)</div>
+    </div>
+    <div class="ans-row" style="margin-top:0.8rem">
+      <input class="ans-in" id="ans-brkC" placeholder="What's wrong?">
+      <button class="chk-btn" onclick="checkAnswerLocal('ans-brkC','fb-brkC','brkC')">Check</button>
+    </div>
+    <div class="fb" id="fb-brkC"></div>
+  </div>
+
+  <div class="challenge" style="border-color:var(--yellow)">
+    <h4 style="color:var(--yellow)">YOUR TURN — Predict ALL 7 outputs</h4>
+    <p class="ch-q">Read the whole program first. Then write what each numbered print() shows.</p>
+    <div class="ch-code">name = "Jordan"
+age = 11
+is_student = True
+grade = "Year 6"
+
+print(name)              # 1
+print(type(age))          # 2
+print("Ha" * 3)           # 3
+print(is_student)         # 4
+print(age + 1)            # 5
+print(True + True)        # 6
+print("I am in " + grade) # 7</div>
+    <div class="timer-bar" id="tt-big1"><span style="font-size:1.4rem">⏱️</span><span class="t-text">This is a big one. Think carefully. Answer box in:</span><span class="t-num" id="tc-big1">15</span><button class="t-skip" onclick="skipTimer('big1')">Skip</button></div>
+    <div class="ans-zone" id="az-big1">
+      <div class="ans-row">
+        <textarea class="ans-in" id="ans-big1" placeholder="7 outputs — one per line..." rows="7"></textarea>
+        <button class="chk-btn" onclick="checkAnswerLocal('ans-big1','fb-big1','big1')" style="background:var(--yellow);color:#000">Check</button>
+      </div>
+      <div class="fb" id="fb-big1"></div>
+    </div>
+  </div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(4)">← Back</button>
+    <span class="sec-status">Section 5 of 8</span>
+    <button class="nbtn primary" onclick="goTo(6)">Next: Build Your Own →</button>
+  </div>
+</section>
+
+<section id="sec-6" class="sec" data-s="6">
+  <div class="sec-tag" style="background:rgba(244,114,182,0.1);color:var(--pink);border:1px solid var(--pink)">DAY 2 · SECTION 6</div>
+  <h2 class="sec-title">🏗️ Build Your Own</h2>
+  <p class="sec-sub">Fill in the blanks with YOUR own information. Every blank uses a real Python rule from today.</p>
+
+  <div class="card" style="border-color:var(--pink)">
+    <h3 style="color:var(--pink)">Your Personal Profile Program</h3>
+    <p style="margin-bottom:1rem">Copy this into Thonny. Replace each <code>____</code> with your own value. Use the right type!</p>
+    <div class="cbox">
+      <div class="cbox-label" style="background:rgba(244,114,182,0.1);color:var(--pink)">YOUR PERSONAL PROFILE — fill every blank</div>
+      <div class="cbox-body"><span class="ck">my_name</span>     = <span class="cs">"____"</span>        <span class="cc"># your name (string)</span>
+<span class="ck">my_age</span>      = ____          <span class="cc"># your age (integer, no quotes)</span>
+<span class="ck">my_height</span>   = ____          <span class="cc"># your height in metres (float, e.g. 1.45)</span>
+<span class="ck">is_student</span>  = ____          <span class="cc"># True or False (boolean)</span>
+<span class="ck">my_fav</span>      = <span class="cs">"____"</span>        <span class="cc"># your favourite thing (string)</span>
+
+<span class="cf">print</span>(<span class="cs">"Name:"</span>, my_name)
+<span class="cf">print</span>(<span class="cs">"Age:"</span>, my_age)
+<span class="cf">print</span>(<span class="cs">"Height:"</span>, my_height)
+<span class="cf">print</span>(<span class="cs">"Student:"</span>, is_student)
+<span class="cf">print</span>(<span class="cs">"Favourite:"</span>, my_fav)</div>
+    </div>
+    <div class="note" style="margin-top:1rem">
+      <span class="n-icon">🔑</span>
+      <div>Every rule you learned today is used here: str uses quotes, int has no quotes, float has a decimal, bool is True/False, and comma joins different types in print().</div>
+    </div>
+  </div>
+
+  <div class="t-note"><span class="t-icon">👨‍🏫</span><div><strong>Walk around:</strong> Check that students use the correct types. Common mistakes: putting quotes around age (makes it a string), writing <code>true</code> instead of <code>True</code>, forgetting the decimal for height.</div></div>
+
+  <div class="sec-nav">
+    <button class="nbtn" onclick="goTo(5)">← Back</button>
+    <span class="sec-status">Section 6 of 8</span>
+    <button class="nbtn primary" onclick="goTo(7)">Next: Final Assessment →</button>
+  </div>
+</section>
+
+<section id="sec-7" class="sec" data-s="7">
+  <div class="sec-tag" style="background:rgba(167,139,250,0.1);color:var(--violet);border:1px solid var(--violet)">DAY 2 · FINAL ASSESSMENT</div>
+  <h2 class="sec-title">📝 Review Assessment</h2>
+  <p class="sec-sub">10 questions covering everything from both days. No looking back! Show what you know.</p>
+
+  <div id="quiz-area"></div>
+
+  <button class="chk-btn" id="quiz-submit-btn" onclick="gradeQuiz()" style="margin-top:1.5rem;background:var(--violet);padding:14px 40px;font-size:1.05rem;width:100%;max-width:400px;display:block;margin-left:auto;margin-right:auto;border-radius:12px">Submit Assessment ✅</button>
+
+  <div class="final-result" id="final-result" style="display:none">
+    <div style="font-size:3.5rem;margin-bottom:0.5rem" id="fr-emoji">🏆</div>
+    <div style="font-family:var(--display);font-size:1.8rem;color:var(--yellow);margin-bottom:0.3rem">Assessment Result</div>
+    <div style="font-family:var(--mono);font-size:3rem;font-weight:700;color:var(--green)" id="fr-score">0/10</div>
+    <div style="color:var(--dim);margin:0.5rem 0 1rem" id="fr-pct"></div>
+    <div id="fr-level" style="display:inline-block;padding:8px 24px;border-radius:999px;font-weight:700;margin-bottom:1rem"></div>
+    <div id="fr-msg" style="font-size:1rem;line-height:1.7;margin-bottom:1.5rem"></div>
+    <button onclick="confetti()" style="background:var(--violet);color:#fff;border:none;padding:12px 32px;border-radius:10px;font-weight:700;cursor:pointer;font-size:1rem;font-family:var(--body)">🎉 Celebrate!</button>
+  </div>
+
+  <div class="sec-nav" style="margin-top:2rem">
+    <button class="nbtn" onclick="goTo(6)">← Back</button>
+    <span class="sec-status">Assessment · Final section</span>
+    <button class="nbtn" onclick="goTo(0)">↻ Restart Lesson</button>
+  </div>
+</section>
+
+<footer>
+  <p>🐍 Python Adventure · Mr Rommel's Year 6 · Digital Technologies</p>
+  <p style="margin-top:0.4rem;font-size:0.8rem">Instant Classroom Validation Mode Active · Add ?teacher=true to URL for discussion prompts</p>
+</footer>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────────────
+let score=0, answered=new Set(), curSec=0;
+const TOTAL=8;
+
+if(new URLSearchParams(location.search).get('teacher')==='true') document.body.classList.add('teacher-mode');
+
+// ── LOCAL ANSWERS DICTIONARY (Replaces CORS-broken API calls) ───────
+const LESSON_ANSWERS = {
+  var1: {
+    check: (v) => v === "5",
+    verdict: "Perfect tracking!",
+    explain: "Variables only store one value at a time. The line score = 5 overrides the previous values of 0 and 10.",
+    hint: "Python runs line by line from top to bottom. What was the absolute last value given to score?"
+  },
+  str1: {
+    check: (v) => {
+      let lines = v.split('\n').map(l => l.trim().replace(/['"]/g, ""));
+      return lines[0] === "HaHaHa" && lines[1] === "555" && (lines[2] === "Hello World" || lines[2] === "HelloWorld");
+    },
+    verdict: "Superb string matching!",
+    explain: "Multiplying text repeats it! Joining strings together with + glues them directly end to end.",
+    hint: "Make sure you have exactly 3 lines of text. 'Ha' times 3, '5' as text times 3, and the three phrases combined."
+  },
+  brk1: {
+    check: (v) => v.toLowerCase().includes("comma") || v.toLowerCase().includes("str") || v.toLowerCase().includes("type") || v.toLowerCase().includes("mix") || v.toLowerCase().includes("cannot"),
+    verdict: "Excellent debugging!",
+    explain: "You cannot directly combine strings and numbers with the '+' sign. You must convert it using str() or separate them with a comma.",
+    hint: "Look at the data types on either side of the '+' operator. One is text, one is a whole number!"
+  },
+  pr1: {
+    check: (v) => {
+      let tokens = v.toLowerCase().replace(/['"<>]/g, "");
+      return tokens.includes("jordan") && (tokens.includes("int") || tokens.includes("class")) && tokens.includes("hahaha") && tokens.includes("11");
+    },
+    verdict: "Spot on output predictions!",
+    explain: "You accurately predicted variable evaluations, type display tracking text output blocks, and mixed parameter printing statements.",
+    hint: "Line 1 outputs name. Line 2 prints the type of age. Line 3 prints 'Ha' duplicated. Line 4 states 'I am' combined with age."
+  },
+  inp1: {
+    check: (v) => v.toLowerCase().replace(/[\s()]/g, "") === "int",
+    verdict: "Correct conversion tool!",
+    explain: "Wrapping input() functions entirely inside an int() cast changes strings directly into usable numeric values.",
+    hint: "What short 3-letter keyword stands for integer numbers in Python data types?"
+  },
+  brkA: {
+    check: (v) => v.toLowerCase().includes("quote") || v.toLowerCase().includes("string") || v.toLowerCase().includes("text"),
+    verdict: "Great eye for strings!",
+    explain: "The word Jordan lacks enclosing quotes. Python tries to treat it like an uninstantiated variable box.",
+    hint: "Look at how Jordan is assigned. Is text allowed to sit inside variables without any quotation marks?"
+  },
+  brkB: {
+    check: (v) => v.toLowerCase().includes("capital") || v.toLowerCase().includes("case") || v.toLowerCase().includes("true"),
+    verdict: "Perfect logic observation!",
+    explain: "Boolean flags in modern Python strictly mandate uppercase starting characters ('True' or 'False').",
+    hint: "Look closely at the word 'true'. How should booleans look to prevent syntax issues?"
+  },
+  brkC: {
+    check: (v) => v.toLowerCase().includes("space") || v.toLowerCase().includes("underscore") || v.toLowerCase().includes("rule"),
+    verdict: "Fantastic rule enforcement!",
+    explain: "Spaces are fully restricted inside token structures. Variable tags must be joined with symbols like underscores.",
+    hint: "Look closely at the name 'my name'. What character spaces inside are breaking naming rule three?"
+  },
+  big1: {
+    check: (v) => {
+      let lines = v.toLowerCase().replace(/['"<>]/g, "");
+      return lines.includes("jordan") && lines.includes("int") && lines.includes("hahaha") && lines.includes("true") && lines.includes("12") && lines.includes("2") && lines.includes("year 6");
+    },
+    verdict: "Incredible script mastery!",
+    explain: "You mastered tracing strings, types, tracking counters, combined logic operators, and string appends.",
+    hint: "Line 5 checks age + 1 (11 + 1). Line 6 sums True + True (each counts as 1 in math contexts). Track all line calculations!"
+  }
+};
+
+function checkAnswerLocal(iid, fid, key) {
+  const el = document.getElementById(iid), fb = document.getElementById(fid);
+  let val = el.value.trim();
+  if(!val){ alert("Type your answer first!"); return; }
+  
+  fb.className = 'fb loading'; fb.innerHTML = '🤖 Evaluating code block...';
+  
+  setTimeout(() => {
+    let handler = LESSON_ANSWERS[key];
+    let isCorrect = handler.check(val);
+    
+    el.classList.remove('ok', 'bad');
+    el.classList.add(isCorrect ? 'ok' : 'bad');
+    fb.className = 'fb ' + (isCorrect ? 'ok' : 'bad');
+    
+    if(isCorrect) {
+      fb.innerHTML = `<strong>✅ ${handler.verdict}</strong><div class="explain">${handler.explain}</div>`;
+      addPts(10, iid);
+      let btn = el.parentElement.querySelector('.chk-btn');
+      if(btn) btn.disabled = true;
+    } else {
+      fb.innerHTML = `<strong>❌ Not quite there yet.</strong><div class="explain">${handler.hint}</div>`;
+    }
+  }, 400);
+}
+
+// ── LEVELS ──────────────────────────────────────────────────────────
+const LVL=[
+  {min:0,name:"Explorer",icon:"🌱",color:"#34d399"},
+  {min:25,name:"Coder",icon:"⚡",color:"#60a5fa"},
+  {min:55,name:"Pythonista",icon:"🚀",color:"#a78bfa"},
+  {min:90,name:"Code Wizard",icon:"🧙",color:"#fbbf24"},
+];
+let curLvl=0;
+function checkLvl(){
+  let n=0;for(let i=LVL.length-1;i>=0;i--){if(score>=LVL[i].min){n=i;break;}}
+  if(n>curLvl){curLvl=n;showLU();}
+  const l=LVL[curLvl];
+  document.getElementById('level-icon').textContent=l.icon;
+  document.getElementById('level-text').textContent=l.name;
+  document.getElementById('level-text').style.color=l.color;
+}
+function showLU(){
+  const l=LVL[curLvl];
+  document.getElementById('lu-icon').textContent=l.icon;
+  document.getElementById('lu-name').textContent=l.name;
+  const s={"Explorer":"Welcome!","Coder":"You're picking this up fast!","Pythonista":"Real Python skills!","Code Wizard":"You've mastered everything! 🧙"};
+  document.getElementById('lu-sub').textContent=s[l.name];
+  document.getElementById('lvl-modal').classList.add('show');confetti();
+}
+function closeLU(){document.getElementById('lvl-modal').classList.remove('show');}
+
+// ── SCORE ────────────────────────────────────────────────────────────
+function addPts(pts,id){
+  if(answered.has(id))return;answered.add(id);score+=pts;
+  document.getElementById('score-num').textContent=score;
+  const f=document.getElementById('score-flash');
+  f.innerHTML=`<div class="score-pill">+${pts} pts! 🎯</div>`;
+  setTimeout(()=>{f.innerHTML='';},2100);
+  document.getElementById('progress-bar').style.width=Math.min(100,(score/120)*100)+'%';
+  checkLvl();
+}
+
+// ── NAV ──────────────────────────────────────────────────────────────
+function buildDots(){const c=document.getElementById('nav-dots');for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='nav-dot'+(i===0?' current':'');d.onclick=()=>goTo(i);c.appendChild(d);}}
+function goTo(i){
+  if(i<0||i>=TOTAL)return;
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById('sec-'+i).classList.add('active');
+  curSec=i;
+  document.querySelectorAll('.nav-dot').forEach((d,j)=>{d.classList.remove('current');if(j===i)d.classList.add('current');if(j<i)d.classList.add('done');});
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>{['var1','str1','pr1','big1'].forEach(id=>{const t=document.getElementById('tt-'+id);if(t&&t.offsetParent!==null&&!activeTimers[id]&&getComputedStyle(t).display!=='none')startTimer(id);});},300);
+}
+
+// ── TIMER ─────────────────────────────────────────────────────────────
+const activeTimers={};
+function startTimer(id){
+  let s=id==='big1'?15:10;const el=document.getElementById('tc-'+id);if(!el)return;el.textContent=s;
+  activeTimers[id]=setInterval(()=>{s--;el.textContent=s;if(s<=0){clearInterval(activeTimers[id]);delete activeTimers[id];reveal(id);}},1000);
+}
+function skipTimer(id){if(activeTimers[id]){clearInterval(activeTimers[id]);delete activeTimers[id];}reveal(id);}
+function reveal(id){const t=document.getElementById('tt-'+id),z=document.getElementById('az-'+id);if(t)t.style.display='none';if(z)z.classList.add('show');}
+
+// ── TYPE GAME ────────────────────────────────────────────────────────
+const TV=[{v:'"Hello"',t:'str'},{v:'42',t:'int'},{v:'True',t:'bool'},{v:'3.14',t:'float'},{v:'"7"',t:'str'},{v:'False',t:'bool'},{v:'99',t:'int'},{v:'"Python"',t:'str'},{v:'0',t:'int'},{v:'1.0',t:'float'},{v:'"True"',t:'str'},{v:'100',t:'int'}];
+let selChip=null;
+function buildTG(){const c=document.getElementById('type-chips');if(!c)return;[...TV].sort(()=>Math.random()-0.5).forEach((item,i)=>{const d=document.createElement('div');d.className='type-chip';d.textContent=item.v;d.dataset.value=item.v;d.dataset.type=item.t;d.onclick=()=>{if(d.classList.contains('placed'))return;document.querySelectorAll('.type-chip').forEach(c=>c.classList.remove('selected'));selChip=d;d.classList.add('selected');};c.appendChild(d);});}
+function placeTo(t){if(!selChip)return;const c=document.getElementById('b-'+t),s=document.createElement('span');s.className='placed-chip';s.textContent=selChip.dataset.value;s.dataset.ct=selChip.dataset.type;s.dataset.pt=t;c.appendChild(s);selChip.classList.add('placed');selChip.classList.remove('selected');selChip=null;}
+function checkTypeGame(){const chips=document.querySelectorAll('.bucket .placed-chip');let ok=0;chips.forEach(c=>{c.classList.remove('ok','bad');if(c.dataset.ct===c.dataset.pt){c.classList.add('ok');ok++;}else c.classList.add('bad');});const r=document.getElementById('tg-result');if(chips.length<TV.length){r.innerHTML=`<span style="color:var(--coral)">Place all ${TV.length} first! (${chips.length}/${TV.length})</span>`;return;}if(ok===TV.length){r.innerHTML=`<span style="color:var(--green)">🎉 Perfect! All ${ok} correct!</span>`;addPts(20,'tg');confetti();}else r.innerHTML=`<span style="color:var(--yellow)">${ok}/${TV.length} correct. Red = wrong bucket. Remember: quotes = str!</span>`;}
+
+// ── NAME GAME ────────────────────────────────────────────────────────
+let nameGameDone=false,nameGameScore=0;
+function pickName(el){if(nameGameDone||el.classList.contains('picked-ok')||el.classList.contains('picked-bad'))return;
+  const valid=el.dataset.valid==='1';const vd=el.querySelector('.verdict');
+  if(valid){el.classList.add('picked-ok');vd.textContent='✓ Valid!';vd.style.color='var(--green)';nameGameScore++;}
+  else{el.classList.add('picked-bad');vd.textContent='✗ Invalid';vd.style.color='var(--red)';}
+  const all=document.querySelectorAll('.name-card');let done=0;all.forEach(c=>{if(c.classList.contains('picked-ok')||c.classList.contains('picked-bad'))done++;});
+  if(done===all.length){nameGameDone=true;const r=document.getElementById('name-game-result');if(nameGameScore===3&&done===6){r.innerHTML='<span style="color:var(--green)">🎉 Perfect! You know the naming rules.</span>';addPts(15,'ng');}else r.innerHTML=`<span style="color:var(--yellow)">Check the ones marked red — they break the naming rules.</span>`;}}
+
+// ── QUIZ ─────────────────────────────────────────────────────────────
+const QZ=[
+  {q:"What is a variable in Python?",opts:["A type of loop","A labelled box that stores a value","A Python file","A number"],ans:1},
+  {q:'What type is "Hello" in Python?',opts:["int","float","str","bool"],ans:2},
+  {q:"What type is 42 in Python?",opts:["str","int","float","bool"],ans:1},
+  {q:"What type is 3.14?",opts:["str","int","float","bool"],ans:2},
+  {q:"What type is True?",opts:["str","int","float","bool"],ans:3},
+  {q:'What does print("Ha" * 3) output?',opts:["Ha3","Ha Ha Ha","HaHaHa","Error"],ans:2},
+  {q:"Which is a VALID variable name?",opts:["my score","3name","my_score","my-score"],ans:2},
+  {q:"What does input() always return?",opts:["An integer","A float","A string","A boolean"],ans:2},
+  {q:'What does print("name") print?',opts:["The value stored in name","The word name","An error","Nothing"],ans:1},
+  {q:"How do you convert input to an integer?",opts:["str()","float()","int()","bool()"],ans:2},
+];
+let quizAnswers=new Array(QZ.length).fill(-1);
+
+function buildQuiz(){
+  const area=document.getElementById('quiz-area');
+  QZ.forEach((q,i)=>{
+    const div=document.createElement('div');div.className='quiz-q';div.id='qq-'+i;
+    div.innerHTML=`<span class="q-num">Q${i+1}</span><p class="ch-q">${q.q}</p><div class="mcq-opts" id="qopts-${i}">${q.opts.map((o,j)=>`<div class="mcq-opt" data-qi="${i}" data-oi="${j}" onclick="pickOpt(${i},${j})">${o}</div>`).join('')}</div>`;
+    area.appendChild(div);
+  });
+}
+
+function pickOpt(qi,oi){
+  quizAnswers[qi]=oi;
+  document.querySelectorAll(`#qopts-${qi} .mcq-opt`).forEach(o=>{o.classList.remove('selected');if(parseInt(o.dataset.oi)===oi)o.classList.add('selected');});
+}
+
+function gradeQuiz(){
+  let correct=0;
+  QZ.forEach((q,i)=>{
+    const opts=document.querySelectorAll(`#qopts-${i} .mcq-opt`);
+    opts.forEach(o=>{
+      o.classList.remove('selected','right','wrong');o.style.pointerEvents='none';
+      const oi=parseInt(o.dataset.oi);
+      if(oi===q.ans)o.classList.add('right');
+      else if(oi===quizAnswers[i])o.classList.add('wrong');
+    });
+    if(quizAnswers[i]===q.ans)correct++;
+  });
+
+  document.getElementById('quiz-submit-btn').disabled=true;
+
+  const pct=Math.round((correct/QZ.length)*100);
+  addPts(correct*3,'quiz');
+
+  const fr=document.getElementById('final-result');fr.style.display='block';
+  document.getElementById('fr-score').textContent=correct+'/'+QZ.length;
+  document.getElementById('fr-pct').textContent=pct+'% correct';
+
+  const msgs=[
+    [90,"🧙 Code Wizard! You've absolutely mastered Python basics. Ready for loops!","var(--yellow)"],
+    [70,"🚀 Pythonista! Strong understanding. Review the ones you missed, then you're ready for loops!","var(--violet)"],
+    [50,"⚡ Coder! Good effort. Go back and review the sections where you got stuck.","var(--blue)"],
+    [0,"🌱 Explorer. Don't worry — go back through each section and try again. You'll get there!","var(--green)"],
+  ];
+  const [,msg,col]=msgs.find(([min])=>pct>=min);
+  document.getElementById('fr-msg').innerHTML=`<span style="color:${col}">${msg}</span>`;
+  const lvDiv=document.getElementById('fr-level');
+  const lv=LVL[curLvl];
+  lvDiv.textContent=lv.icon+' '+lv.name;
+  lvDiv.style.background=lv.color+'22';lvDiv.style.color=lv.color;lvDiv.style.border='1px solid '+lv.color;
+  document.getElementById('fr-emoji').textContent=pct>=90?'🧙':pct>=70?'🚀':pct>=50?'⚡':'🌱';
+  if(pct>=70)confetti();
+  fr.scrollIntoView({behavior:'smooth'});
+}
+
+// ── CONFETTI ─────────────────────────────────────────────────────────
+function confetti(){const colors=['#34d399','#60a5fa','#fb923c','#fbbf24','#f472b6','#a78bfa'];for(let i=0;i<100;i++){const p=document.createElement('div');p.className='confetti-piece';p.style.cssText=`left:${Math.random()*100}vw;width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*0.6}s`;document.body.appendChild(p);setTimeout(()=>p.remove(),4500);}}
+
+// ── INIT ─────────────────────────────────────────────────────────────
+buildDots();buildTG();buildQuiz();
+</script>
 </body>
 </html>
